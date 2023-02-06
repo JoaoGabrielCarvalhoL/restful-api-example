@@ -1,20 +1,21 @@
 package br.com.carv.restful.model.dto.response;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 public class UserResponse {
 
     private String username;
     private Boolean isAuthenticated;
-    private LocalDateTime created;
-    private LocalDateTime expiration;
+    private Date created;
+    private Date expiration;
     private String accessToken;
     private String refreshToken;
 
     public UserResponse() {
     }
 
-    public UserResponse(String username, Boolean isAuthenticated, LocalDateTime created, LocalDateTime expiration, String accessToken, String refreshToken) {
+    public UserResponse(String username, Boolean isAuthenticated, Date created, Date expiration, String accessToken, String refreshToken) {
         this.username = username;
         this.isAuthenticated = isAuthenticated;
         this.created = created;
@@ -39,19 +40,19 @@ public class UserResponse {
         isAuthenticated = authenticated;
     }
 
-    public LocalDateTime getCreated() {
+    public Date getCreated() {
         return created;
     }
 
-    public void setCreated(LocalDateTime created) {
+    public void setCreated(Date created) {
         this.created = created;
     }
 
-    public LocalDateTime getExpiration() {
+    public Date getExpiration() {
         return expiration;
     }
 
-    public void setExpiration(LocalDateTime expiration) {
+    public void setExpiration(Date expiration) {
         this.expiration = expiration;
     }
 

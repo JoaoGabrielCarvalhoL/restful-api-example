@@ -10,15 +10,18 @@ public class PersonResponse extends RepresentationModel<PersonResponse> {
     private String address;
     private String gender;
 
+    private Boolean enabled;
+
     public PersonResponse() {
     }
 
-    public PersonResponse(Long key, String firstName, String lastName, String address, String gender) {
+    public PersonResponse(Long key, String firstName, String lastName, String address, String gender, Boolean enabled) {
         this.key = key;
         this.firstName = firstName;
         this.lastName = lastName;
         this.address = address;
         this.gender = gender;
+        this.enabled = enabled;
     }
 
     public Long getId() {
@@ -59,5 +62,13 @@ public class PersonResponse extends RepresentationModel<PersonResponse> {
 
     public void setGender(String gender) {
         this.gender = gender;
+    }
+
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
     }
 }

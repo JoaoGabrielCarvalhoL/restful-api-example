@@ -11,9 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Authentication Endpoint")
 public interface AuthController {
@@ -25,8 +23,15 @@ public interface AuthController {
             @ApiResponse(responseCode = "400", description = "Bad Request"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
             @ApiResponse(responseCode = "500", description = "Internal Server Error")})
-    @PostMapping(name = "/signin",  produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE, "application/x-yaml" },
+    @PostMapping(produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE, "application/x-yaml" },
             consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE, "application/x-yaml" })
     @ResponseStatus(HttpStatus.CREATED)
     ResponseEntity<?> signIn(@RequestBody AuthUserRequest userRequest);
+
+    @Operation(summary = "Refresh token for authenticated user and returns a token")
+    @PutMapping(value = "/refresh/{username}")
+    ResponseEntity refreshToken(@PathVariable("username") String username,
+                                       @RequestHeader("Authorization") String refreshToken);
+
+
 }

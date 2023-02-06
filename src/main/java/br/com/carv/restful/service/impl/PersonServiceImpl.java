@@ -8,10 +8,15 @@ import br.com.carv.restful.model.dto.request.PersonUpdateRequest;
 import br.com.carv.restful.model.dto.response.PersonResponse;
 import br.com.carv.restful.repository.PersonRepository;
 import br.com.carv.restful.service.PersonService;
+import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,10 +32,13 @@ public class PersonServiceImpl implements PersonService {
 	private final PersonRepository personRepository;
 	private final ModelMapper mapper;
 	private final Logger logger = Logger.getLogger(PersonServiceImpl.class.getName());
+
+	private final PagedResourcesAssembler<PersonResponse> resourcesAssembler;
 	
-	public PersonServiceImpl(PersonRepository personRepository, ModelMapper mapper) {
+	public PersonServiceImpl(PersonRepository personRepository, ModelMapper mapper, PagedResourcesAssembler<PersonResponse> resourcesAssembler) {
 		this.personRepository = personRepository;
 		this.mapper = mapper;
+		this.resourcesAssembler = resourcesAssembler;
 	}
 	@Override
 	public PersonResponse findByKey(Long id) {
@@ -76,7 +84,31 @@ public class PersonServiceImpl implements PersonService {
 		List<PersonResponse> personResponses = personRepository.findAll(pageable)
 				.stream().map(person -> mapper.map(person, PersonResponse.class))
 				.collect(Collectors.toList());
+		personResponses.stream().forEach(p -> p.add(linkTo(methodOn(PersonControllerImpl.class).findById(p.getId())).withSelfRel()));
 		return new PageImpl<PersonResponse>(personResponses, pageable, personResponses.size());
+	}
+
+	@Override
+	public PagedModel<EntityModel<PersonResponse>> anotherFindAllPaginated(Pageable pageable) {
+		logger.info("Getting list of person paginated PagedModel");
+		List<PersonResponse> personResponses = personRepository.findAll(pageable)
+				.stream().map(person -> mapper.map(person, PersonResponse.class))
+				.collect(Collectors.toList());
+		personResponses.stream().forEach(p -> p.add(linkTo(methodOn(PersonControllerImpl.class).findById(p.getId())).withSelfRel()));
+
+		Link link = linkTo(methodOn(PersonControllerImpl.class).anotherFindAllPaginated(pageable)).withSelfRel();
+		return resourcesAssembler.toModel(new PageImpl<PersonResponse>(personResponses, pageable, personResponses.size()), link);
+	}
+
+	@Transactional
+	@Override
+	public PersonResponse disablePerson(Long id) {
+		logger.info("Disable Person by id: " + id);
+		personRepository.disablePerson(id);
+		PersonResponse personResponse = personRepository.findById(id).map(person -> mapper.map(person, PersonResponse.class)).
+				orElseThrow(() -> new ResourceNotFoundException("person.not.found"));
+		personResponse.add(linkTo(methodOn(PersonControllerImpl.class).findById(id)).withSelfRel());
+		return personResponse;
 	}
 
 	@Override

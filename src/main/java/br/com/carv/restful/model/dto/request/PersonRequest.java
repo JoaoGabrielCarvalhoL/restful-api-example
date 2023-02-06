@@ -6,14 +6,17 @@ public class PersonRequest {
     private String address;
     private String gender;
 
+    private Boolean enabled;
+
     public PersonRequest() {
     }
 
-    public PersonRequest(String firstName, String lastName, String address, String gender) {
+    public PersonRequest(String firstName, String lastName, String address, String gender, Boolean enabled) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.address = address;
         this.gender = gender;
+        this.enabled = enabled;
     }
 
     public String getFirstName() {
@@ -46,5 +49,13 @@ public class PersonRequest {
 
     public void setGender(String gender) {
         this.gender = gender;
+    }
+
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
     }
 }

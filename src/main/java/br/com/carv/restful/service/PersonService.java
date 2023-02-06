@@ -9,6 +9,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import br.com.carv.restful.model.Person;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 
 public interface PersonService {
 	
@@ -21,6 +23,10 @@ public interface PersonService {
 	List<PersonResponse> findAll();
 	
 	Page<PersonResponse> findAllPaginated(final Pageable pageable);
+
+	PagedModel<EntityModel<PersonResponse>> anotherFindAllPaginated(Pageable pageable);
+
+	PersonResponse disablePerson(final Long id);
 	
 	void delete(final Long key);
 

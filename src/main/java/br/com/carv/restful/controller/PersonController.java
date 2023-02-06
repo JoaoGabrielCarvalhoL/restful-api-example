@@ -13,8 +13,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -82,5 +85,25 @@ public interface PersonController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void delete(Long id);
+
+    @Operation(summary = "Disable user", description = "Disable User by id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Ok", content = { @Content
+                    (schema = @Schema(implementation = PersonResponse.class)) }),
+            @ApiResponse(responseCode = "400", description = "Bad Request"),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error")})
+    @PatchMapping(value = "/{id}", produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE, "application/x-yaml" })
+    @ResponseStatus(HttpStatus.OK)
+    PersonResponse disablePerson(@PathVariable("id") Long id);
+
+
+    @Operation(summary = "Paged Model", description = "Find users paginated")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Ok"),
+            @ApiResponse(responseCode = "400", description = "Bad Request"),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error")})
+    @GetMapping(value = "/another-paginated", produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE, "application/x-yaml" })
+    @ResponseStatus(HttpStatus.OK)
+    ResponseEntity<PagedModel<EntityModel<PersonResponse>>> anotherFindAllPaginated(Pageable pageable);
 
 }

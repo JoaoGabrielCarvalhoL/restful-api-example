@@ -16,8 +16,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
@@ -47,58 +45,82 @@ public class JwtTokenProvider {
     }
 
     public UserResponse createAccessToken(String username, List<String> roles) {
-        LocalDateTime validity = LocalDateTime.now().plusHours(this.validityInMilliseconds);
-        String accessToken = getAccessToken(username, roles, LocalDateTime.now(), validity);
-        String refreshToken = getRefreshAccessToken(username, roles, LocalDateTime.now());
-        return new UserResponse(username, true, LocalDateTime.now(), validity, accessToken, refreshToken);
+        Date now = new Date();
+        Date validity = new Date(now.getTime() + validityInMilliseconds);
+        var accessToken = getAccessToken(username, roles, now, validity);
+        var refreshToken = getRefreshToken(username, roles, now);
+
+        return new UserResponse(username, true, now, validity, accessToken, refreshToken);
     }
 
-    public String getAccessToken(String username, List<String> roles, LocalDateTime now, LocalDateTime validity) {
-        String issuerUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
-        return JWT.create().withClaim("roles", roles)
-                .withIssuedAt(Instant.from(now)).withExpiresAt(Instant.from(validity))
-                .withSubject(username).withIssuer(issuerUrl).sign(algorithm).strip();
+
+    public UserResponse refreshToken(String refreshToken) {
+        if (refreshToken.contains("Bearer ")) refreshToken =
+                refreshToken.substring("Bearer ".length());
+
+        JWTVerifier verifier = JWT.require(algorithm).build();
+        DecodedJWT decodedJWT = verifier.verify(refreshToken);
+        String username = decodedJWT.getSubject();
+        List<String> roles = decodedJWT.getClaim("roles").asList(String.class);
+        return createAccessToken(username, roles);
     }
 
-    public String getRefreshAccessToken(String username, List<String> roles, LocalDateTime now) {
-        LocalDateTime refreshToken = LocalDateTime.now().plusHours(this.validityInMilliseconds * 3);
-        return JWT.create().withClaim("roles", roles)
-                .withIssuedAt(Instant.from(now)).withExpiresAt(Instant.from(refreshToken))
-                .withSubject(username).sign(algorithm).strip();
+    private String getAccessToken(String username, List<String> roles, Date now, Date validity) {
+        String issuerUrl = ServletUriComponentsBuilder
+                .fromCurrentContextPath().build().toUriString();
+        return JWT.create()
+                .withClaim("roles", roles)
+                .withIssuedAt(now)
+                .withExpiresAt(validity)
+                .withSubject(username)
+                .withIssuer(issuerUrl)
+                .sign(algorithm)
+                .strip();
+    }
+
+    private String getRefreshToken(String username, List<String> roles, Date now) {
+        Date validityRefreshToken = new Date(now.getTime() + (validityInMilliseconds * 3));
+        return JWT.create()
+                .withClaim("roles", roles)
+                .withIssuedAt(now)
+                .withExpiresAt(validityRefreshToken)
+                .withSubject(username)
+                .sign(algorithm)
+                .strip();
     }
 
     public Authentication getAuthentication(String token) {
         DecodedJWT decodedJWT = decodedToken(token);
-        UserDetails userDetails = this.userDetailsService.loadUserByUsername(decodedJWT.getSubject());
+        UserDetails userDetails = this.userDetailsService
+                .loadUserByUsername(decodedJWT.getSubject());
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 
     private DecodedJWT decodedToken(String token) {
-        Algorithm algorithm = Algorithm.HMAC256(this.secretKey.getBytes());
-        JWTVerifier verifier = JWT.require(algorithm).build();
+        Algorithm alg = Algorithm.HMAC256(secretKey.getBytes());
+        JWTVerifier verifier = JWT.require(alg).build();
         DecodedJWT decodedJWT = verifier.verify(token);
         return decodedJWT;
     }
 
-    public String resolveToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if(bearerToken != null && bearerToken.startsWith("Bearer ")) {
+    public String resolveToken(HttpServletRequest req) {
+        String bearerToken = req.getHeader("Authorization");
+
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring("Bearer ".length());
         }
-
         return null;
     }
 
-    public Boolean validateToken(String token) {
+    public boolean validateToken(String token) {
         DecodedJWT decodedJWT = decodedToken(token);
         try {
-            if(decodedJWT.getExpiresAt().before(new Date())) {
+            if (decodedJWT.getExpiresAt().before(new Date())) {
                 return false;
             }
             return true;
-
-        } catch (Exception exception) {
-            throw new InvalidJWTAuthenticationException("Expired or invalid token!");
+        } catch (Exception e) {
+            throw new InvalidJWTAuthenticationException("Expired or invalid JWT token!");
         }
     }
 

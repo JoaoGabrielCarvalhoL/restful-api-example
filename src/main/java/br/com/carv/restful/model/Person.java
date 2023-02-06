@@ -27,14 +27,17 @@ public class Person  implements Serializable {
 	private String address;
 	private String gender;
 
+	private Boolean enabled;
+
 	public Person() {
 	}
 
-	public Person(String firstName, String lastName, String address, String gender) {
+	public Person(String firstName, String lastName, String address, String gender, Boolean enabled) {
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.address = address;
 		this.gender = gender;
+		this.enabled = enabled;
 	}
 
 	public Long getId() {
@@ -75,6 +78,14 @@ public class Person  implements Serializable {
 
 	public void setGender(String gender) {
 		this.gender = gender;
+	}
+
+	public Boolean getEnabled() {
+		return enabled;
+	}
+
+	public void setEnabled(Boolean enabled) {
+		this.enabled = enabled;
 	}
 
 	@Override

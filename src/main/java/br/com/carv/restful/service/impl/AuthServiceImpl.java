@@ -38,6 +38,8 @@ public class AuthServiceImpl implements AuthService {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
 
             User user = userRepository.findByUsername(username);
+            System.out.println(user.toString());
+
             UserResponse userResponse = new UserResponse();
 
             if (userResponse != null) {
@@ -51,6 +53,18 @@ public class AuthServiceImpl implements AuthService {
         } catch (Exception ex) {
             throw new BadCredentialsException("Invalid username/password supplied");
         }
+    }
+
+    public ResponseEntity<?> refreshToken(String username, String refreshToken) {
+        User user = userRepository.findByUsername(username);
+
+        UserResponse userResponse = new UserResponse();
+        if (user != null) {
+            userResponse = jwtTokenProvider.refreshToken(refreshToken);
+        } else {
+            throw new UsernameNotFoundException("Username " + username + " not found!");
+        }
+        return ResponseEntity.ok(userResponse);
     }
 
 

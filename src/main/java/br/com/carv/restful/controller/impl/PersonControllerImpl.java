@@ -6,10 +6,14 @@ import br.com.carv.restful.controller.PersonController;
 import br.com.carv.restful.model.dto.request.PersonRequest;
 import br.com.carv.restful.model.dto.request.PersonUpdateRequest;
 import br.com.carv.restful.model.dto.response.PersonResponse;
+import org.apache.coyote.Response;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -61,6 +65,16 @@ public class PersonControllerImpl implements PersonController {
 	@Override
 	public void delete(Long id) {
 		personService.delete(id);
+	}
+
+	@Override
+	public PersonResponse disablePerson(Long id) {
+		return personService.disablePerson(id);
+	}
+
+	@Override
+	public ResponseEntity<PagedModel<EntityModel<PersonResponse>>> anotherFindAllPaginated(Pageable pageable) {
+		return ResponseEntity.status(HttpStatus.OK).body(personService.anotherFindAllPaginated(pageable));
 	}
 
 }
