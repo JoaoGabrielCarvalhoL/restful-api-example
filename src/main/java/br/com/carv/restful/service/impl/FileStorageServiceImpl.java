@@ -1,8 +1,11 @@
 package br.com.carv.restful.service.impl;
 
 import br.com.carv.restful.config.FileStorageConfig;
+import br.com.carv.restful.exception.ApiFileNotFoundException;
 import br.com.carv.restful.exception.FileStorageException;
 import br.com.carv.restful.service.FileStorageService;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -52,6 +55,24 @@ public class FileStorageServiceImpl implements FileStorageService {
             throw new FileStorageException("Could not store file " + filename + ". Please, try again!", exception);
         }
 
+    }
+
+    @Override
+    public Resource loadFileAsResource(String filename) {
+        logger.info("Reading file on disk");
+        try {
+            Path filePath = this.fileStorageLocation.resolve(filename).normalize();
+            Resource resource = new UrlResource(filePath.toUri());
+
+            if (resource.exists()) {
+                return resource;
+            } else  {
+                throw new ApiFileNotFoundException("File not found! Filename: " + filename);
+            }
+
+        } catch (Exception ex) {
+            throw new ApiFileNotFoundException("File not found! Filename: " + filename, ex);
+        }
     }
 
 }
